@@ -98,7 +98,7 @@ Response
                       max_time=300,
                       giveup=fatal_code,
                       logger=api_logger)
-def get_crypto_data(url: str):
+def get_crypto_data(url: str, parameters : dict):
     try:
         return requests.get(url, params=parameters, headers=headers, timeout=180, allow_redirects=False, verify=True)
     except (ConnectionError, Timeout, TooManyRedirects) as e:
@@ -106,12 +106,12 @@ def get_crypto_data(url: str):
 
 
 def print_crypto_data(url: str, filename: str) -> None:
-    response = get_crypto_data(url)
+    response = get_crypto_data(url, parameters={})
     data = json.loads(response.text)
 
     json_formatted_str = json.dumps(data, indent=2)
     # print(json_formatted_str)
-    with open(filename, "a") as outfile:
+    with open(filename, "w") as outfile:
         outfile.write(json_formatted_str)
     print(data)
 
@@ -148,8 +148,8 @@ def get_crypto_prices():
         print(e)
 
 
-def print_crypto_prices(url, filename):
-    response = get_crypto_data(url)
+def print_crypto_prices(url, filename, parameters):
+    response = get_crypto_data(url, parameters)
     data = json.loads(response.text)
 
     json_formatted_str = json.dumps(data, indent=2)
@@ -213,7 +213,7 @@ def extract_crypto_cmc_ids(symbols) -> str:
 
 
 if __name__ == '__main__':
-    # print_crypto_data('https://pro-api.coinmarketcap.com/v1/cryptocurrency/map', 'coinmarketcap_idmap.json')
+    print_crypto_data('https://pro-api.coinmarketcap.com/v1/cryptocurrency/map', 'coinmarketcap_idmap.json')
     # print_crypto_data('https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/map')
     #  fetch CMC ID for use instead of cryptocurrency symbols to securely identify cryptocurrencies
     #  with our other endpoints.
@@ -236,5 +236,5 @@ if __name__ == '__main__':
                'market_cap_by_total_supply,volume_24h_reported,volume_7d,volume_7d_reported,volume_30d,'
                'volume_30d_reported,is_active,is_fiat'
     }
-    #print_crypto_prices('https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest','coinmarketcap_prices.json')
+    print_crypto_prices('https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest','coinmarketcap_prices.json', parameters)
     extract_top_cryptocurrencies('coinmarketcap_prices.json')

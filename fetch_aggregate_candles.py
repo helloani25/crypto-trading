@@ -54,7 +54,7 @@ async def create_ws_client_candle_instance(db):
 
 
     def on_close():
-        print("Connection opened!")
+        print("Connection closed!")
 
     wsclient = WSClient(key_file="coinbase_cloud_api_key_cdp.json", on_message=on_message, on_open=on_open,
                         on_close=on_close, verbose=True)

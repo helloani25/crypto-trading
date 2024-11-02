@@ -87,8 +87,8 @@ async def execute_price_tracker(db):
     result = await fetch_top_cryptos_json()
     print(f"finished at {time.strftime('%X')}")
     print(result)
-    # with open("data_files/top_cryptos_candles.json", "w") as outfile:
-    #    outfile.write('\n'.join(result))
+    with open("data_files/top_cryptos_candles.json", "w") as outfile:
+        outfile.write('\n'.join(result))
     start_time = datetime.now(timezone.utc)
     data = {'symbols': ', '.join(result), 'timestamp': start_time, 'channel': 'candles'}
     db.util_insert_one(data, 'top_cryptos')

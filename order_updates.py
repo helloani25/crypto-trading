@@ -8,10 +8,12 @@ import websocket
 import threading
 from datetime import datetime, timezone
 
+import mongodb_util
+
 # Derived from your Coinbase CDP API Key
 # SIGNING_KEY: the signing key provided as a part of your API key. Also called the "SECRET KEY"
 # API_KEY: the api key provided as a part of your API key. also called the "API KEY NAME"
-with open("coinbase_cloud_api_key_cdp.json","r") as f:
+with open("coinbase_cloud_api_key_cdp.json", "r") as f:
     cdp_cloud_key = json.load(f)
 
 API_KEY = cdp_cloud_key["name"]
@@ -34,6 +36,7 @@ CHANNEL_NAMES = {
 
 WS_API_URL = "wss://advanced-trade-ws.coinbase.com"
 
+
 def sign_with_jwt(message, channel, products=[]):
     payload = {
         "iss": "coinbase-cloud",
@@ -49,11 +52,6 @@ def sign_with_jwt(message, channel, products=[]):
     message['jwt'] = token
     return message
 
-def on_message(ws, message):
-    data = json.loads(message)
-    print(data)
-    with open("Output1.txt", "a") as f:
-        f.write(json.dumps(data) + "\n")
 
 def subscribe_to_products(ws, products, channel_name):
     message = {
@@ -64,6 +62,7 @@ def subscribe_to_products(ws, products, channel_name):
     signed_message = sign_with_jwt(message, channel_name, products)
     ws.send(json.dumps(signed_message))
 
+
 def unsubscribe_to_products(ws, products, channel_name):
     message = {
         "type": "unsubscribe",
@@ -73,16 +72,31 @@ def unsubscribe_to_products(ws, products, channel_name):
     signed_message = sign_with_jwt(message, channel_name, products)
     ws.send(json.dumps(signed_message))
 
-def on_open(ws):
-    products = ["BTC-USD"]
-    subscribe_to_products(ws, products, CHANNEL_NAMES["level2"])
 
-def start_websocket():
+def start_websocket(db):
+    def on_message(ws, message):
+        data = json.loads(message)
+        print(data)
+        with open("Output1.txt", "a") as f:
+            f.write(json.dumps(data, indent=2) + "\n")
+        for event in data['events'][0]['updates']:
+            #  c = dict(a, **b) this method fails in Python 3 when keys are not strings.
+            order = dict({'product_id': data['events'][0]['product_id']}, **event)
+            db.util_insert_one(order, "order_book")
+
+
+    def on_open(ws):
+        products = ["BTC-USD","ETH-USD"]
+        subscribe_to_products(ws, products, CHANNEL_NAMES["level2"])
+
     ws = websocket.WebSocketApp(WS_API_URL, on_open=on_open, on_message=on_message)
     ws.run_forever()
 
+
 def main():
-    ws_thread = threading.Thread(target=start_websocket)
+    db = mongodb_util.MongodbUtil()
+    db.test_mongodb_setup()
+    ws_thread = threading.Thread(target=start_websocket, args=(db,))
     ws_thread.start()
 
     sent_unsub = False
@@ -99,6 +113,7 @@ def main():
             time.sleep(1)
     except Exception as e:
         print(f"Exception: {e}")
+
 
 if __name__ == "__main__":
     main()

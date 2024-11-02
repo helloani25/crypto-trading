@@ -36,8 +36,8 @@ async def create_ws_client_sub_instance(db):
         data = json.loads(message)
         print(data)
         if data["channel"] in ["level2"]:
-            with open("Output1.txt", "a") as f:
-                f.write(json.dumps(data, indent=2) + "\n")
+            #with open("Output1.txt", "a") as f:
+            #    f.write(json.dumps(data, indent=2) + "\n")
             for event in data['events'][0]['updates']:
                 #  c = dict(a, **b) this method fails in Python 3 when keys are not strings.
                 order = dict({'product_id': data['events'][0]['product_id']}, **event)

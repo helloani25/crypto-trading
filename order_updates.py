@@ -75,6 +75,8 @@ async def execute_price_tracker(db):
     data = {'symbols': result['symbols'], 'timestamp': start_time, 'channel': 'level2'}
     db.util_insert_one(data, 'top_cryptos')
     print(f"finished at {time.strftime('%X')}")
+    with open("data_files/top_cryptos_level2.json", "w") as outfile:
+        outfile.write(result['symbols'])
     print(result['symbols'].split(","))
     return result['symbols'].split(",")
 

@@ -130,6 +130,7 @@ def main():
     try:
         while True:
             top_crypto_symbols = execute_price_tracker(loop)
+            top_crypto_symbols.append("BTC-USD")
             # print(top_crypto_symbols)
             asyncio.run_coroutine_threadsafe(run_ws_client_candles(ws_clients, top_crypto_symbols, db), loop)
             asyncio.run_coroutine_threadsafe(aggregate_all_candles(top_crypto_symbols, db), loop)

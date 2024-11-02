@@ -4,6 +4,7 @@ import json
 import threading
 import time
 from asyncio import create_task, as_completed
+from datetime import timezone, datetime
 
 from coinbase.websocket import (WSClient, WSClientConnectionClosedException,
                                 WSClientException)
@@ -66,13 +67,16 @@ def end_event_loop(ws_clients, top_crypto_symbols,  loop, thread):
     loop.close()
 
 
-def execute_price_tracker(loop):
+async def execute_price_tracker(db):
     print(f"started at {time.strftime('%X')}")
-    future = asyncio.run_coroutine_threadsafe(fetch_top_cryptos_json(), loop)
-    result = future.result()
+    cursor = db.util_fetch_collection_last_inserted('top_cryptos', 'candles')
+    start_time = datetime.now(timezone.utc)
+    result = cursor[0]
+    data = {'symbols': result['symbols'], 'timestamp': start_time, 'channel': 'level2'}
+    db.util_insert_one(data, 'top_cryptos')
     print(f"finished at {time.strftime('%X')}")
-    print(result)
-    return result
+    print(result['symbols'].split(","))
+    return result['symbols'].split(",")
 
 async def subscribe_ws_client_level2(ws_clients, top_crypto_symbols, db):
     tasks = []
@@ -114,7 +118,8 @@ def main():
     # loop forever logic must start here
     try:
         while True:
-            top_crypto_symbols = execute_price_tracker(loop)
+            future = asyncio.run_coroutine_threadsafe(execute_price_tracker(db), loop)
+            top_crypto_symbols = future.result()
             top_crypto_symbols.append("BTC-USD")
             # print(top_crypto_symbols)
             asyncio.run_coroutine_threadsafe(subscribe_ws_client_level2(ws_clients, top_crypto_symbols, db), loop)

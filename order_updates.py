@@ -9,7 +9,6 @@ from datetime import timezone, datetime
 from coinbase.websocket import (WSClient, WSClientConnectionClosedException,
                                 WSClientException)
 import mongodb_util
-from crypto_price_tracker import fetch_top_cryptos_json
 
 async def subscribe_level2_updates(symbols, wsclient):
     try:

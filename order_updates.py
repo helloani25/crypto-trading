@@ -15,18 +15,18 @@ async def subscribe_level2_updates(symbols, wsclient):
         await wsclient.open_async()
         await wsclient.subscribe_async(product_ids=symbols, channels=["heartbeats", "level2"])
     except WSClientConnectionClosedException as e:
-        print("Connection closed! Retry attempts exhausted.")
+        print("Connection closed! Retry attempts exhausted.",e)
     except WSClientException as e:
-        print("Error encountered!")
+        print("Error encountered!",e)
 
 async def unsubscribe_level2_updates(symbols, wsclient):
     try:
         await wsclient.unsubscribe_async(product_ids=symbols, channels=["heartbeats", "level2"])
         await wsclient.close_async()
     except WSClientConnectionClosedException as e:
-        print("Connection closed! Retry attempts exhausted.")
+        print("Connection closed! Retry attempts exhausted.",e)
     except WSClientException as e:
-        print("Error encountered!")
+        print("Error encountered!",e)
 
 async def create_ws_client_sub_instance(db):
     def on_open():
@@ -88,7 +88,7 @@ async def subscribe_ws_client_level2(ws_clients, top_crypto_symbols, db):
     for task in as_completed(tasks):
         await task
 
-async def unsubscribe_ws_client_level2(ws_clients, top_crypto_symbols, db):
+async def unsubscribe_ws_client_level2(ws_clients, top_crypto_symbols):
     tasks = []
     remove_cryptos = check_crypto_prices_down(top_crypto_symbols)
     for symbol in remove_cryptos:
@@ -104,7 +104,7 @@ def main():
         track websocket client and crypto currency channel and close if too old or prices are falling.
         Use a hash [currency] => ws_client and check if the connection already exists before creating a new
         process.
-        Close the websocket client client.close()
+        Close the websocket  client.close()
         Terminate the existing process for connection to the websocket process.shutdown()
         remove currency from hash
     """
@@ -124,7 +124,7 @@ def main():
             top_crypto_symbols.append("BTC-USD")
             # print(top_crypto_symbols)
             asyncio.run_coroutine_threadsafe(subscribe_ws_client_level2(ws_clients, top_crypto_symbols, db), loop)
-            asyncio.run_coroutine_threadsafe(unsubscribe_ws_client_level2(ws_clients, top_crypto_symbols, db), loop)
+            asyncio.run_coroutine_threadsafe(unsubscribe_ws_client_level2(ws_clients, top_crypto_symbols), loop)
             time.sleep(900) # sleep for 15 minutes
     # loop forever logic must end here
     except Exception as e:

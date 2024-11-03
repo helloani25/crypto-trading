@@ -95,6 +95,24 @@ async def execute_price_tracker(db):
     db.util_insert_one(data, 'top_cryptos')
     return result
 
+async def unsubscribe_candle_updates(symbols, wsclient):
+    try:
+        await wsclient.unsubscribe_async(product_ids=symbols, channels=["heartbeats", "candles"])
+        await wsclient.close_async()
+    except WSClientConnectionClosedException as e:
+        print("Connection closed! Retry attempts exhausted.",e)
+    except WSClientException as e:
+        print("Error encountered!",e)
+
+async def unsubscribe_ws_clients_candles(ws_clients, top_crypto_symbols):
+    tasks = []
+    remove_cryptos = check_crypto_prices_down(top_crypto_symbols)
+    for symbol in remove_cryptos:
+        print(symbol)
+        tasks.append(create_task(unsubscribe_candle_updates([symbol], ws_clients[symbol])))
+    for task in as_completed(tasks):
+        await task
+
 async def run_ws_client_candles(ws_clients, top_crypto_symbols, db):
     tasks = []
     for symbol in top_crypto_symbols:
@@ -112,6 +130,9 @@ async def aggregate_all_candles(top_crypto_symbols, db):
     for task in as_completed(tasks):
         await task
 
+def check_crypto_prices_down(top_cryptos):
+    # TODO: add logic to remove cryptos
+    return []
 
 # Press the green button in the gutter to run the script.
 def main():
@@ -141,6 +162,7 @@ def main():
             # print(top_crypto_symbols)
             asyncio.run_coroutine_threadsafe(run_ws_client_candles(ws_clients, top_crypto_symbols, db), loop)
             asyncio.run_coroutine_threadsafe(aggregate_all_candles(top_crypto_symbols, db), loop)
+            asyncio.run_coroutine_threadsafe(unsubscribe_ws_clients_candles(ws_clients, top_crypto_symbols), loop)
             time.sleep(900) # sleep for 15 minutes
     # loop forever logic must end here
     except Exception as e:

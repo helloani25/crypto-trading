@@ -33,9 +33,9 @@ async def run_websocket_client(symbols, wsclient):
         await wsclient.open_async()
         await wsclient.subscribe_async(product_ids=symbols, channels=["heartbeats", "candles"])
     except WSClientConnectionClosedException as e:
-        print("Connection closed! Retry attempts exhausted.")
+        print("Connection closed! Retry attempts exhausted.",e)
     except WSClientException as e:
-        print("Error encountered!")
+        print("Error encountered!",e)
 
 
 async def create_ws_client_candle_instance(db):
@@ -119,7 +119,7 @@ def main():
         track websocket client and crypto currency channel and close if too old or prices are falling.
         Use a hash [currency] => ws_client and check if the connection already exists before creating a new
         process.
-        Close the websocket client client.close()
+        Close the websocket  client.close()
         Terminate the existing process for connection to the websocket process.shutdown()
         remove currency from hash
     """

@@ -28,7 +28,7 @@ def rest_client(db):
         outfile.write(products_json)
 
 
-async def run_websocket_client(symbols, wsclient):
+async def subscribe_candle_updates(symbols, wsclient):
     try:
         await wsclient.open_async()
         await wsclient.subscribe_async(product_ids=symbols, channels=["heartbeats", "candles"])
@@ -113,12 +113,12 @@ async def unsubscribe_ws_clients_candles(ws_clients, top_crypto_symbols):
     for task in as_completed(tasks):
         await task
 
-async def run_ws_client_candles(ws_clients, top_crypto_symbols, db):
+async def subscribe_ws_clients_candles(ws_clients, top_crypto_symbols, db):
     tasks = []
     for symbol in top_crypto_symbols:
         print(symbol)
         ws_clients[symbol] = await create_ws_client_candle_instance(db)
-        tasks.append(create_task(run_websocket_client([symbol], ws_clients[symbol])))
+        tasks.append(create_task(subscribe_candle_updates([symbol], ws_clients[symbol])))
     for task in as_completed(tasks):
         await task
 
@@ -160,7 +160,7 @@ def main():
             top_crypto_symbols = future.result()
             top_crypto_symbols.append("BTC-USD")
             # print(top_crypto_symbols)
-            asyncio.run_coroutine_threadsafe(run_ws_client_candles(ws_clients, top_crypto_symbols, db), loop)
+            asyncio.run_coroutine_threadsafe(subscribe_ws_clients_candles(ws_clients, top_crypto_symbols, db), loop)
             asyncio.run_coroutine_threadsafe(aggregate_all_candles(top_crypto_symbols, db), loop)
             asyncio.run_coroutine_threadsafe(unsubscribe_ws_clients_candles(ws_clients, top_crypto_symbols), loop)
             time.sleep(900) # sleep for 15 minutes

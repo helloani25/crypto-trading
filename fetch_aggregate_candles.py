@@ -16,13 +16,14 @@ from crypto_price_tracker import fetch_top_cryptos_json
 
 def rest_client(db):
     client = RESTClient(key_file="coinbase_cloud_api_key_cdp.json")
-    # accounts = client.get_accounts(self)
-    # print(dumps(accounts, indent=2))
+    #accounts = client.get_accounts()
+    #print(dumps(accounts, indent=2))
     products = client.get_products()
-    products_json = (dumps(products, indent=2))
-    print(dumps(products_json, indent=2))
+    products_json =  json.dumps(products, default=lambda x: x.__dict__, indent = 2)
+    print(products_json)
     db.util_drop_collection("products")
-    db.util_insert_many(products["products"], "products")
+    products_deserialized = list(map(vars, products['products']))
+    db.util_insert_many(products_deserialized, "products")
     with open("products.json", "w") as outfile:
         outfile.write(products_json)
 

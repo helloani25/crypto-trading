@@ -1,0 +1,346 @@
+:toc:
+
+https://docs.cdp.coinbase.com/advanced-trade/reference
+
+====== Get Portfolios
+-----
+
+{
+  "portfolios": {
+    "name": "string",
+    "uuid": "string",
+    "type": "UNDEFINED",
+    "deleted": "boolean"
+  }
+}
+
+-----
+
+====== Get All Portfolio Positions
+-----
+
+{
+  "breakdown": {
+    "portfolio": {
+      "name": "string",
+      "uuid": "string",
+      "type": "UNDEFINED",
+      "deleted": "boolean"
+    },
+    "portfolio_balances": {
+      "total_balance": {
+        "value": "string",
+        "currency": "string"
+      },
+      "total_futures_balance": {
+        "value": "string",
+        "currency": "string"
+      },
+      "total_cash_equivalent_balance": {
+        "value": "string",
+        "currency": "string"
+      },
+      "total_crypto_balance": {
+        "value": "string",
+        "currency": "string"
+      },
+      "futures_unrealized_pnl": {
+        "value": "string",
+        "currency": "string"
+      },
+      "perp_unrealized_pnl": {
+        "value": "string",
+        "currency": "string"
+      }
+    },
+    "spot_positions": [
+      {
+        "asset": "string",
+        "account_uuid": "string",
+        "total_balance_fiat": "number",
+        "total_balance_crypto": "number",
+        "available_to_trade_fiat": "number",
+        "allocation": "number",
+        "one_day_change": "number",
+        "cost_basis": {
+          "value": "string",
+          "currency": "string"
+        },
+        "asset_img_url": "string",
+        "is_cash": "boolean"
+      }
+    ],
+    "perp_positions": [
+      {
+        "product_id": "string",
+        "product_uuid": "string",
+        "symbol": "string",
+        "asset_image_url": "string",
+        "vwap": {
+          "userNativeCurrency": {
+            "value": "string",
+            "currency": "string"
+          },
+          "rawCurrency": {
+            "value": "string",
+            "currency": "string"
+          }
+        },
+        "position_side": "FUTURES_POSITION_SIDE_UNSPECIFIED",
+        "net_size": "string",
+        "buy_order_size": "string",
+        "sell_order_size": "string",
+        "im_contribution": "string",
+        "unrealized_pnl": {
+          "userNativeCurrency": {
+            "value": "string",
+            "currency": "string"
+          },
+          "rawCurrency": {
+            "value": "string",
+            "currency": "string"
+          }
+        },
+        "mark_price": {
+          "userNativeCurrency": {
+            "value": "string",
+            "currency": "string"
+          },
+          "rawCurrency": {
+            "value": "string",
+            "currency": "string"
+          }
+        },
+        "liquidation_price": {
+          "userNativeCurrency": {
+            "value": "string",
+            "currency": "string"
+          },
+          "rawCurrency": {
+            "value": "string",
+            "currency": "string"
+          }
+        },
+        "leverage": "string",
+        "im_notional": {
+          "userNativeCurrency": {
+            "value": "string",
+            "currency": "string"
+          },
+          "rawCurrency": {
+            "value": "string",
+            "currency": "string"
+          }
+        },
+        "mm_notional": {
+          "userNativeCurrency": {
+            "value": "string",
+            "currency": "string"
+          },
+          "rawCurrency": {
+            "value": "string",
+            "currency": "string"
+          }
+        },
+        "position_notional": {
+          "userNativeCurrency": {
+            "value": "string",
+            "currency": "string"
+          },
+          "rawCurrency": {
+            "value": "string",
+            "currency": "string"
+          }
+        },
+        "margin_type": "MARGIN_TYPE_UNSPECIFIED",
+        "liquidation_buffer": "string",
+        "liquidation_percentage": "string"
+      }
+    ],
+    "futures_positions": [
+      {
+        "product_id": "string",
+        "contract_size": "string",
+        "side": "FUTURES_POSITION_SIDE_UNSPECIFIED",
+        "amount": "string",
+        "avg_entry_price": "string",
+        "current_price": "string",
+        "unrealized_pnl": "string",
+        "expiry": "string",
+        "underlying_asset": "string",
+        "asset_img_url": "string",
+        "product_name": "string",
+        "venue": "string",
+        "notional_value": "string"
+      }
+    ]
+  }
+}
+-----
+
+====== Get Product (Crypto Currency)
+----
+{
+  "product_id": "BTC-USD",
+  "price": "140.21",
+  "price_percentage_change_24h": "9.43%",
+  "volume_24h": "1908432",
+  "volume_percentage_change_24h": "9.43%",
+  "base_increment": "0.00000001",
+  "quote_increment": "0.00000001",
+  "quote_min_size": "0.00000001",
+  "quote_max_size": "1000",
+  "base_min_size": "0.00000001",
+  "base_max_size": "1000",
+  "base_name": "Bitcoin",
+  "quote_name": "US Dollar",
+  "watched": true,
+  "is_disabled": "boolean",
+  "new": true,
+  "status": "string",
+  "cancel_only": true,
+  "limit_only": true,
+  "post_only": true,
+  "trading_disabled": "boolean",
+  "auction_mode": true,
+  "product_type": "string",
+  "quote_currency_id": "USD",
+  "base_currency_id": "BTC",
+  "fcm_trading_session_details": {
+    "is_session_open": "boolean",
+    "open_time": "string",
+    "close_time": "string",
+    "session_state": "FCM_TRADING_SESSION_STATE_UNDEFINED",
+    "after_hours_order_entry_disabled": "boolean"
+  },
+  "mid_market_price": "140.22",
+  "alias": "BTC-USD",
+  "alias_to": [
+    "BTC-USDC"
+  ],
+  "base_display_symbol": "BTC",
+  "quote_display_symbol": "USD",
+  "view_only": true,
+  "price_increment": "0.00000001",
+  "display_name": "BTC PERP",
+  "product_venue": "neptune",
+  "approximate_quote_24h_volume": "1908432",
+  "future_product_details": {
+    "venue": "string",
+    "contract_code": "string",
+    "contract_expiry": "string",
+    "contract_size": "string",
+    "contract_root_unit": "string",
+    "group_description": "string",
+    "contract_expiry_timezone": "string",
+    "group_short_description": "string",
+    "risk_managed_by": "UNKNOWN_RISK_MANAGEMENT_TYPE",
+    "contract_expiry_type": "UNKNOWN_CONTRACT_EXPIRY_TYPE",
+    "perpetual_details": {
+      "open_interest": "string",
+      "funding_rate": "string",
+      "funding_time": "string",
+      "max_leverage": "string",
+      "base_asset_uuid": "string",
+      "underlying_type": "string"
+    },
+    "contract_display_name": "string",
+    "time_to_expiry_ms": "string",
+    "non_crypto": "boolean",
+    "contract_expiry_name": "string"
+  }
+}
+----
+===== Order Placed Response
+----
+{
+  "success": true,
+  "success_response": {
+    "order_id": "11111-00000-000000",
+    "product_id": "BTC-USD",
+    "side": "",
+    "client_order_id": "0000-00000-000000"
+  },
+  "error_response": {
+    "error": "UNKNOWN_FAILURE_REASON",
+    "message": "The order configuration was invalid",
+    "error_details": "Market orders cannot be placed with empty order sizes",
+    "preview_failure_reason": "UNKNOWN_PREVIEW_FAILURE_REASON",
+    "new_order_failure_reason": "UNKNOWN_FAILURE_REASON"
+  },
+  "order_configuration": {
+    "market_market_ioc": {
+      "quote_size": "10.00",
+      "base_size": "0.001"
+    },
+    "sor_limit_ioc": {
+      "base_size": "0.001",
+      "limit_price": "10000.00"
+    },
+    "limit_limit_gtc": {
+      "base_size": "0.001",
+      "limit_price": "10000.00",
+      "post_only": false
+    },
+    "limit_limit_gtd": {
+      "base_size": "0.001",
+      "limit_price": "10000.00",
+      "end_time": "2021-05-31T09:59:59Z",
+      "post_only": false
+    },
+    "limit_limit_fok": {
+      "base_size": "0.001",
+      "limit_price": "10000.00"
+    },
+    "stop_limit_stop_limit_gtc": {
+      "base_size": "0.001",
+      "limit_price": "10000.00",
+      "stop_price": "20000.00",
+      "stop_direction": "20000.00"
+    },
+    "stop_limit_stop_limit_gtd": {
+      "base_size": 0.001,
+      "limit_price": "10000.00",
+      "stop_price": "20000.00",
+      "end_time": "2021-05-31T09:59:59Z",
+      "stop_direction": "20000.00"
+    },
+    "trigger_bracket_gtc": {
+      "base_size": 0.001,
+      "limit_price": "10000.00",
+      "stop_trigger_price": "20000.00"
+    },
+    "trigger_bracket_gtd": {
+      "base_size": 0.001,
+      "limit_price": "10000.00",
+      "stop_trigger_price": "20000.00",
+      "end_time": "2021-05-31T09:59:59Z"
+    }
+  }
+}
+----
+===== Fill Order Response
+----
+'''
+{
+  "fills": {
+    "entry_id": "22222-2222222-22222222",
+    "trade_id": "1111-11111-111111",
+    "order_id": "0000-000000-000000",
+    "trade_time": "2021-05-31T09:59:59Z",
+    "trade_type": "FILL", // Adjusted fills have possible values `REVERSAL`, `CORRECTION`, `SYNTHETIC`.
+    "price": "10000.00",
+    "size": "0.001",
+    "commission": "1.25",
+    "product_id": "BTC-USD",
+    "sequence_timestamp": "2021-05-31T09:58:59Z",
+    "liquidity_indicator": "UNKNOWN_LIQUIDITY_INDICATOR", // Possible values: [UNKNOWN_LIQUIDITY_INDICATOR, MAKER, TAKER]
+    "size_in_quote": false,
+    "user_id": "3333-333333-3333333",
+    "side": "", //Possible values: [BUY, SELL]
+    "retail_portfolio_id": "4444-444444-4444444"
+  },
+  "cursor": "789100"
+}
+'''
+----

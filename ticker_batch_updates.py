@@ -83,7 +83,7 @@ def start_background_loop(loop: asyncio.AbstractEventLoop) -> None:
     asyncio.set_event_loop(loop)
     loop.run_forever()
 
-def check_crypto_prices_down(top_cryptos):
+def check_crypto_portfolio(top_cryptos):
     # TODO: add logic to remove cryptos
     return []
 
@@ -106,13 +106,20 @@ async def subscribe_ws_client_ticker_batch(ws_clients, crypto_symbols, db):
 
 async def unsubscribe_ws_client_ticker_batch(ws_clients, crypto_symbols):
     tasks = []
-    remove_cryptos = check_crypto_prices_down(crypto_symbols)
+    remove_cryptos = check_crypto_portfolio(crypto_symbols)
     for symbol in remove_cryptos:
         print(symbol)
         tasks.append(create_task(unsubscribe_ticker_batch_updates([symbol], ws_clients[symbol])))
     for task in as_completed(tasks):
         await task
 
+async def get_portfolio_update(db):
+    rest_client = RESTClient(key_file="coinbase_cloud_api_key_cdp.json", timeout=5, rate_limit_headers=True, verbose=True)
+    portfolio_uuid = get_default_portfolio(rest_client, db)
+    asset_positions, total_balance = get_crypto_positions(rest_client, portfolio_uuid)
+    crypto_symbols = list(map(lambda a: a['symbol'], asset_positions))
+    crypto_symbols.remove('USD')
+    return crypto_symbols
 
 # Press the green button in the gutter to run the script.
 def main():
@@ -127,20 +134,15 @@ def main():
     db = mongodb_util.MongodbUtil()
     db.test_mongodb_setup()
     ws_clients = {}
-    rest_client = RESTClient(key_file="coinbase_cloud_api_key_cdp.json", timeout=5, rate_limit_headers=True, verbose=True)
-    portfolio_uuid = get_default_portfolio(rest_client, db)
-    asset_positions, total_balance = get_crypto_positions(rest_client, portfolio_uuid)
-    crypto_symbols = list(map(lambda a: a['symbol'], asset_positions))
-    crypto_symbols.remove('USD')
-
+    crypto_symbols = []
     loop = asyncio.new_event_loop()
     thread = threading.Thread(target=start_background_loop, args=(loop,), daemon=True)
     thread.start()
     # loop forever logic must start here
     try:
         while True:
-            #future = asyncio.run_coroutine_threadsafe(execute_price_tracker(db), loop)
-            #top_crypto_symbols = future.result()
+            future = asyncio.run_coroutine_threadsafe(get_portfolio_update(db), loop)
+            crypto_symbols = future.result()
             asyncio.run_coroutine_threadsafe(subscribe_ws_client_ticker_batch(ws_clients, crypto_symbols, db), loop)
             asyncio.run_coroutine_threadsafe(unsubscribe_ws_client_ticker_batch(ws_clients, crypto_symbols), loop)
             time.sleep(900) # sleep for 15 minutes

@@ -38,7 +38,7 @@ def get_crypto_positions(rest_client, portfolio_uuid):
             })
     spot_json = dumps(portfolio_breakdown['breakdown']['spot_positions'], default=lambda x: x.__dict__, indent = 2)
     print(spot_json)
-    with open("spot.json", "w+") as outfile:
+    with open("data_files/spot.json", "w+") as outfile:
         outfile.write(spot_json)
     return asset_positions, total_balance
 

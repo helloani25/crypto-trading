@@ -45,7 +45,7 @@ def get_crypto_positions(rest_client, portfolio_uuid):
 async def subscribe_ticker_batch_updates(symbols, wsclient):
     try:
         await wsclient.open_async()
-        await wsclient.subscribe_async(product_ids=symbols, channels=["heartbeats", "ticker_batch"])
+        await wsclient.subscribe_async(product_ids=symbols, channels=["heartbeats", "ticker"])
     except WSClientConnectionClosedException as e:
         print("Connection closed! Retry attempts exhausted.",e)
     except WSClientException as e:
@@ -53,7 +53,7 @@ async def subscribe_ticker_batch_updates(symbols, wsclient):
 
 async def unsubscribe_ticker_batch_updates(symbols, wsclient):
     try:
-        await wsclient.unsubscribe_async(product_ids=symbols, channels=["heartbeats", "ticker_batch"])
+        await wsclient.unsubscribe_async(product_ids=symbols, channels=["heartbeats", "ticker"])
         await wsclient.close_async()
     except WSClientConnectionClosedException as e:
         print("Connection closed! Retry attempts exhausted.",e)
@@ -67,13 +67,10 @@ async def create_ws_client_sub_instance(db):
     def on_message(message):
         data = json.loads(message)
         print(data)
-        # if data["channel"] in ["ticker_batch"]:
-        #     #with open("Output1.txt", "a") as f:
-        #     #    f.write(json.dumps(data, indent=2) + "\n")
-        #     for event in data['events'][0]['ticker_batch']:
-        #         #  c = dict(a, **b) this method fails in Python 3 when keys are not strings.
-        #         order = dict({'product_id': data['events'][0]['product_id']}, **event)
-        #         db.util_insert_one(order, "order_book")
+        if data["channel"] == "ticker":
+            ticker =  data['events'][0]['tickers'][0]
+            ticker['timestamp'] =  data['timestamp']
+            db.util_insert_one(ticker, "ticker")
 
     def on_close():
         print("Connection closed!")

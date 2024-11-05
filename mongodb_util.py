@@ -167,5 +167,9 @@ class MongodbUtil:
         size = db_collection.count_documents({'channel': channel})
         return db_collection.find({'channel': channel}).skip(size - 1)
 
+    def util_fetch_one(self, document_name, filter_name, filter_value):
+        db_collection = self.fetch_db_collection(document_name)
+        return db_collection.find_one({filter_name: filter_value})
+
 
 

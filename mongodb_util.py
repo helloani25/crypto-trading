@@ -165,7 +165,7 @@ class MongodbUtil:
     def util_fetch_collection_last_inserted(self, document_name, channel):
         db_collection = self.fetch_db_collection(document_name)
         size = db_collection.count_documents({'channel': channel})
-        return db_collection.find({'channel': 'candles'}).skip(size - 1)
+        return db_collection.find({'channel': channel}).skip(size - 1)
 
 
 

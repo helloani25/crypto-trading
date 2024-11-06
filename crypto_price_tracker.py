@@ -1,7 +1,7 @@
 import json
 import os
 
-async def fetch_top_cryptos_json(db):
+async def fetch_top_cryptos_json():
     top_cryptos = []
     if not os.path.isfile("./price_tracker.json"):
         return
@@ -11,13 +11,7 @@ async def fetch_top_cryptos_json(db):
         for product in data:
             if idx == 25:
                 break
-            cb_products = db.util_fetch_one('products', { 'base_name': product['symbol'].capitalize(), 'quote_currency_id': 'USD'} )
-            if cb_products is None:
-                cb_products = db.util_fetch_one('products', { 'base_currency_id': product['symbol'].upper(), 'quote_currency_id': 'USD'} )
-            if cb_products is None:
-                print(f"Symbol : {product['symbol']} does not exist")
-                continue
-            symbol = cb_products['product_id']
+            symbol = product['symbol']
             if product['volume_24h'] > 50000000 or product['rank'] < 150 :
                 if (product['percent_change_1h'] >= 2 or product['percent_change_24h'] >= 3
                     or product['percent_change_7d'] > 6) and \

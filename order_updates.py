@@ -35,7 +35,7 @@ async def create_ws_client_sub_instance(db):
     def on_message(message):
         data = json.loads(message)
         print(data)
-        if data["channel"] in ["level2"]:
+        if data["channel"] in ["l2_data"]:
             #with open("Output1.txt", "a") as f:
             #    f.write(json.dumps(data, indent=2) + "\n")
             for event in data['events'][0]['updates']:

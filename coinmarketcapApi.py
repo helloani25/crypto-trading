@@ -8,6 +8,7 @@ import polling
 import requests
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import json
+import mongodb_util
 
 headers = {
     'Accepts': 'application/json',
@@ -167,13 +168,19 @@ def sorted_prices(currencies):
                                  'percent_change_60d', 'percent_change_90d'), reverse=True)
 
 
-def extract_top_cryptocurrencies(filename):
+def extract_top_cryptocurrencies(filename, db):
     top_cryptocurrencies = []
     prices_file = open("price_tracker.csv", 'w', newline='\n')
     with open(filename, "r") as f:
         prices = json.load(f)
         for idx, price in prices["data"].items():
-            product = {"symbol": price["symbol"],
+            cb_product = db.util_fetch_one('products', { 'base_name': price['symbol'].capitalize(), 'quote_currency_id': 'USD'} )
+            if cb_product is None:
+                cb_product = db.util_fetch_one('products', { 'base_currency_id': price['symbol'].upper(), 'quote_currency_id': 'USD'} )
+            if cb_product is None:
+                print(f"Symbol : {price['symbol']} does not exist")
+                continue
+            product = {"symbol": cb_product['product_id'],
                        "name": price["name"],
                        "rank": price["cmc_rank"],
                        "id": price["id"],
@@ -248,4 +255,6 @@ if __name__ == '__main__':
                'volume_30d_reported,is_active,is_fiat'
     }
     print_crypto_prices('https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest','coinmarketcap_prices.json', parameters)
-    extract_top_cryptocurrencies('coinmarketcap_prices.json')
+    db = mongodb_util.MongodbUtil()
+    db.test_mongodb_setup()
+    extract_top_cryptocurrencies('coinmarketcap_prices.json', db)

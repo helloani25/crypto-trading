@@ -76,8 +76,8 @@ async def execute_price_tracker(db):
     print(f"finished at {time.strftime('%X')}")
     with open("data_files/top_cryptos_level2.json", "w") as outfile:
         outfile.write(result['symbols'])
-    print(result['symbols'].split(","))
-    return result['symbols'].split(",")
+    print(result['symbols'].split(", "))
+    return result['symbols'].split(", ")
 
 async def subscribe_ws_client_level2(ws_clients, top_crypto_symbols, db):
     tasks = []

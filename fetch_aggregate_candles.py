@@ -91,7 +91,7 @@ def end_event_loop(ws_clients, top_crypto_symbols,  loop, thread):
 
 async def execute_price_tracker(db):
     print(f"started at {time.strftime('%X')}")
-    result = await fetch_top_cryptos_json(db)
+    result = await fetch_top_cryptos_json()
     print(f"finished at {time.strftime('%X')}")
     print(result)
     with open("data_files/top_cryptos_candles.json", "w") as outfile:

@@ -83,6 +83,7 @@ class MongodbUtil:
                     '_id': {
                         'date': date_granularity
                     },
+                    'start': {'$min': "$start"},
                     'sumVolume': {'$sum': "$convertedVolume"},
                     'minLow': {'$min': "$convertedLow"},
                     'maxHigh': {'$max': "$convertedHigh"},

@@ -1,6 +1,7 @@
 import csv
 import logging
 from operator import itemgetter
+from typing import Tuple, Dict, Any
 
 import backoff
 import polling
@@ -190,24 +191,36 @@ def extract_top_cryptocurrencies(filename):
     writer.writerows(sorted_prices(top_cryptocurrencies))
 
 
-def extract_crypto_symbols() -> str:
-    symbols: set = set()
+def extract_coinbase_crypto_symbols() -> tuple[dict[Any, Any], dict[Any, Any]]:
+    cb_base_names = {}
+    cb_base_currencies = {}
     with open('products.json') as f:
         data = json.load(f)
         for product in data['products']:
-            if not product['is_disabled'] and product['base_currency_id'] not in ['EUROC', 'PAX', 'RENDER', 'RONIN', 'TVK', 'GODS', 'XRP','FOX']:
-                symbols.add(product['base_name'])
+            if not product['is_disabled'] and product['base_currency_id'] not in ['EURC', 'USDC', 'PAX', 'RENDER', 'RONIN', 'TVK', 'GODS', 'XRP','FOX']:
+                cb_base_names[product['base_name'].upper()] = product['product_id']
+                cb_base_currencies[product['base_currency_id'].upper()] = product['product_id']
     # return ','.join(symbols)
-    return symbols
+    return cb_base_names, cb_base_currencies
 
 
-def extract_crypto_cmc_ids(symbols) -> str:
+def extract_crypto_cmc_ids(cb_base_names, cb_base_currencies) -> dict[Any, tuple[Any, str]]:
     ids = {}
+    missing_symbols = {}
     with open('coinmarketcap_idmap.json') as f:
         assets = json.load(f)
         for currency in assets['data']:
-            if currency['is_active'] == 1 and currency['name'] in symbols:
-                ids[currency['symbol'].upper()] = (currency['rank'], str(currency['id']))
+            symbol = currency['symbol'].upper()
+            if currency['is_active'] == 1 and currency['symbol'] in cb_base_names.keys():
+                ids[cb_base_names[symbol]] = (currency['rank'], str(currency['id']))
+            elif currency['is_active'] == 1 and currency['symbol'] in cb_base_currencies.keys():
+                ids[cb_base_currencies[symbol]] = (currency['rank'], str(currency['id']))
+            else:
+                print(f"Symbol {currency['symbol']} name {currency['name']} not found")
+                missing_symbols[symbol] = currency['name']
+    with open('coinmarketcap_missing_symbols.json', 'w') as outfile:
+        outfile.write(json.dumps(missing_symbols, indent=2))
+
     # return ','.join(ids)
     return ids
 
@@ -217,18 +230,16 @@ if __name__ == '__main__':
     # print_crypto_data('https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/map')
     #  fetch CMC ID for use instead of cryptocurrency symbols to securely identify cryptocurrencies
     #  with our other endpoints.
-    coinbase_symbols = extract_crypto_symbols()
-    print("Total coinbase currencies %d" % len(coinbase_symbols))
-    print(coinbase_symbols)
+    cb_base_names, cb_base_currencies  = extract_coinbase_crypto_symbols()
+    print("Total coinbase currencies in base names %d" % len(cb_base_names))
+    print(cb_base_names.keys())
 
-    ids = extract_crypto_cmc_ids(coinbase_symbols)
+    print("Total coinbase currencies in base currencies %d" % len(cb_base_currencies))
+    print(cb_base_currencies.keys())
+
+    ids = extract_crypto_cmc_ids(cb_base_names, cb_base_currencies)
     print("Total coinmarketcap currencies %d" % len(ids.keys()))
     print(ids)
-
-    print("Missing currencies in coinmarketcap")
-    print(coinbase_symbols - ids.keys())
-    print("Missing currencies in coinbase")
-    print(ids.keys() - coinbase_symbols)
 
     parameters = {
         'id': ','.join(list(map(lambda x: x[1], ids.values()))),

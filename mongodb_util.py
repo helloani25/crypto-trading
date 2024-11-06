@@ -98,7 +98,7 @@ class MongodbUtil:
                     'whenMatched': "replace",
                     'whenNotMatched': "insert"
                 }
-            },
+            }
         ])
         print(f'Aggregated for the  {granularity}')
 
@@ -123,6 +123,10 @@ class MongodbUtil:
     https://www.mongodb.com/docs/manual/core/timeseries/timeseries-build-materialized-views/#build-materialized-views-on-top-of-time-series-data
     '''
 
+
+
+    # unit
+    # "year" "quarter" "month" "week" "day" "hour" "minute" "second"
     def create_timeseries_collection_buckets_datetrunc(self, source_collection_name, target_collection_name, granularity):
         db = self.create_database("CryptoTrading")
         conversion_stage = {
@@ -142,12 +146,17 @@ class MongodbUtil:
             'startOfWeek': "Monday"
         }
         if granularity == '1w':
-            interval_period = {
-                'date': "$start",
-                'unit': "week",
-                'binSize': 1,
-                'startOfWeek': "Monday"
-            }
+            interval_period['unit'] = "week"
+            interval_period['binSize'] = 1
+
+        if granularity == '2h':
+            interval_period['unit'] = "hour"
+            interval_period['binSize'] = 2
+
+        if granularity == '4h':
+            interval_period['unit'] = "hour"
+            interval_period['binSize'] = 4
+
         db[source_collection_name].aggregate([
             conversion_stage,
             {
@@ -187,10 +196,44 @@ class MongodbUtil:
                     'whenMatched': "replace",
                     'whenNotMatched': "insert"
                 }
-            },
+            }
         ])
         print(f'Aggregated for the  {granularity}')
 
+    # https://www.mongodb.com/docs/manual/reference/operator/aggregation/setWindowFields/
+    # https://www.mongodb.com/docs/manual/core/timeseries/timeseries-aggregations-operators/
+    '''
+    range
+    * The window boundaries are specified using a two element array containing a lower and upper limit
+    * The "current" string for the current document position in the output.
+    * The "unbounded" string for the first or last document position in the partition.
+
+    unit
+    "year" "quarter" "month" "week" "day" "hour" "minute" "second"
+    '''
+    # def get_peak_close_prices(self, source_collection_name, target_collection_name, unit):
+    #     db = self.create_database("CryptoTrading")
+    #     db[source_collection_name].aggregate([
+    #         {
+    #             '$setWindowFields': {
+    #                 'sortBy': {'$start': 1},
+    #                 'output': {
+    #                     'peakClose': {
+    #                         '$max': "$close",
+    #                         'window': {range: [-1, "current"], 'unit': unit}
+    #                     }
+    #                 }
+    #             }
+    #         },
+    #         {
+    #             '$merge': {
+    #                 'into': target_collection_name,
+    #                 'on': "_id",
+    #                 'whenMatched': "replace",
+    #                 'whenNotMatched': "insert"
+    #             }
+    #         }
+    #     ])
 
     def util_insert_one_candle_ts(self, data):
         for candle in data["events"][0]["candles"]:
@@ -240,6 +283,12 @@ class MongodbUtil:
     def util_fetch_one(self, document_name, filter_name, filter_value):
         db_collection = self.fetch_db_collection(document_name)
         return db_collection.find_one({filter_name: filter_value})
+
+    # def util_fetch_all(self, document_name, filter_name=None, filter_value=None):
+    #     db_collection = self.fetch_db_collection(document_name)
+    #     if filter_name is None:
+    #         return db_collection.find()
+    #     return db_collection.find({filter_name: filter_value})
 
 
 

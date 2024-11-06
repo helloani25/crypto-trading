@@ -123,6 +123,75 @@ class MongodbUtil:
     https://www.mongodb.com/docs/manual/core/timeseries/timeseries-build-materialized-views/#build-materialized-views-on-top-of-time-series-data
     '''
 
+    def create_timeseries_collection_buckets_datetrunc(self, source_collection_name, target_collection_name, granularity):
+        db = self.create_database("CryptoTrading")
+        conversion_stage = {
+            '$addFields': {
+                'convertedLow': {'$toDecimal': "$low"},
+                'convertedHigh': {'$toDecimal': "$high"},
+                'convertedOpen': {'$toDecimal': "$open"},
+                'convertedClose': {'$toDecimal': "$close"},
+                'convertedVolume': {'$toDouble': "$volume"}
+            }
+        }
+        # granularity 15 min
+        interval_period = {
+            'date': "$start",
+            'unit': "minute",
+            'binSize': 15,
+            'startOfWeek': "Monday"
+        }
+        if granularity == '1w':
+            interval_period = {
+                'date': "$start",
+                'unit': "week",
+                'binSize': 1,
+                'startOfWeek': "Monday"
+            }
+        db[source_collection_name].aggregate([
+            conversion_stage,
+            {
+                '$project': {
+                    # '_id': 1,
+                    'start':1,
+                    # 'truncatedStartDate': {
+                    #     '$dateTrunc': interval_period
+                    # },
+                    "convertedLow": 1,
+                    "convertedHigh": 1,
+                    "convertedOpen": 1,
+                    "convertedClose": 1,
+                    "convertedVolume": 1
+
+                }
+            },
+            {
+                '$group': {
+                    '_id': {
+                        'truncatedOrderDate': {
+                            '$dateTrunc': interval_period
+                        }
+                    },
+                    'start': {'$min': "$start"},
+                    'sumVolume': {'$sum': "$convertedVolume"},
+                    'minLow': {'$min': "$convertedLow"},
+                    'maxHigh': {'$max': "$convertedHigh"},
+                    'firstOpen': {'$first': "$convertedOpen"},
+                    'lastClose': {'$last': "$convertedClose"},
+                }
+            },
+            {
+                '$merge': {
+                    'into': target_collection_name,
+                    'on': "_id",
+                    'whenMatched': "replace",
+                    'whenNotMatched': "insert"
+                }
+            },
+        ])
+        print(f'Aggregated for the  {granularity}')
+
+
     def util_insert_one_candle_ts(self, data):
         for candle in data["events"][0]["candles"]:
             db = self.create_timeseries_collection("candles_ts_5m_" + candle["product_id"])

@@ -20,7 +20,7 @@ def get_default_portfolio(rest_client, db):
     portfolios_json =  dumps(portfolios, default=lambda x: x.__dict__, indent = 2)
     with open("data_files/portfolios.json", "w+") as outfile:
         outfile.write(portfolios_json)
-    db.util_insert_many(portfolios_deserialized, "portfolios")
+    #db.util_insert_many(portfolios_deserialized, "portfolios")
     return portfolios['portfolios'][0]['uuid']
 
 

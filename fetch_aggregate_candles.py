@@ -70,6 +70,9 @@ async def aggregate_candles_ts(db_handle, symbol):
     db_handle.create_timeseries_collection_buckets('candles_ts_5m_'+symbol, 'candles_ts_1mo_'+symbol, '1mo')
     db_handle.create_timeseries_collection_buckets_datetrunc('candles_ts_5m_'+symbol, 'candles_ts_15min_'+symbol, '15min')
     db_handle.create_timeseries_collection_buckets_datetrunc('candles_ts_5m_'+symbol, 'candles_ts_1w_'+symbol, '1w')
+    db_handle.create_timeseries_collection_buckets_datetrunc('candles_ts_5m_'+symbol, 'candles_ts_2h_'+symbol, '2h')
+    db_handle.create_timeseries_collection_buckets_datetrunc('candles_ts_5m_'+symbol, 'candles_ts_4h_'+symbol, '4h')
+
 
 
 

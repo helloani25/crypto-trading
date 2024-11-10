@@ -100,7 +100,7 @@ Response
                       max_time=300,
                       giveup=fatal_code,
                       logger=api_logger)
-def get_crypto_data(url: str, parameters : dict):
+def get_crypto_data(url: str, parameters: dict):
     try:
         return requests.get(url, params=parameters, headers=headers, timeout=180, allow_redirects=False, verify=True)
     except (ConnectionError, Timeout, TooManyRedirects) as e:
@@ -113,7 +113,7 @@ def print_crypto_data(url: str, filename: str) -> None:
 
     json_formatted_str = json.dumps(data, indent=2)
     # print(json_formatted_str)
-    with open(filename, "w") as outfile:
+    with open(filename, "w+") as outfile:
         outfile.write(json_formatted_str)
     print(data)
 
@@ -156,7 +156,7 @@ def print_crypto_prices(url, filename, parameters):
 
     json_formatted_str = json.dumps(data, indent=2)
     # print(json_formatted_str)
-    with open(filename, "w") as outfile:
+    with open(filename, "w+") as outfile:
         outfile.write(json_formatted_str)
     print(data)
 
@@ -170,13 +170,14 @@ def sorted_prices(currencies):
 
 def extract_top_cryptocurrencies(filename, db):
     top_cryptocurrencies = []
-    prices_file = open("price_tracker.csv", 'w', newline='\n')
     with open(filename, "r") as f:
         prices = json.load(f)
         for idx, price in prices["data"].items():
-            cb_product = db.util_fetch_one('products', { 'base_name': price['symbol'].capitalize(), 'quote_currency_id': 'USD'} )
+            cb_product = db.util_fetch_one('products',
+                                           {'base_name': price['symbol'].capitalize(), 'quote_currency_id': 'USD'})
             if cb_product is None:
-                cb_product = db.util_fetch_one('products', { 'base_currency_id': price['symbol'].upper(), 'quote_currency_id': 'USD'} )
+                cb_product = db.util_fetch_one('products', {'base_currency_id': price['symbol'].upper(),
+                                                            'quote_currency_id': 'USD'})
             if cb_product is None:
                 print(f"Symbol : {price['symbol']} does not exist")
                 continue
@@ -190,9 +191,10 @@ def extract_top_cryptocurrencies(filename, db):
     print(sorted_prices(top_cryptocurrencies))
     json_formatted_str = json.dumps(sorted_prices(top_cryptocurrencies), indent=2)
     # print(json_formatted_str)
-    with open("price_tracker.json", "w") as outfile:
+    with open("data_files/price_tracker.json", "w+") as outfile:
         outfile.write(json_formatted_str)
     csv_headers = top_cryptocurrencies[0].keys()
+    prices_file = open("data_files/price_tracker.csv", 'w+', newline='\n')
     writer = csv.DictWriter(prices_file, fieldnames=csv_headers)
     writer.writeheader()
     writer.writerows(sorted_prices(top_cryptocurrencies))
@@ -201,10 +203,13 @@ def extract_top_cryptocurrencies(filename, db):
 def extract_coinbase_crypto_symbols() -> tuple[dict[Any, Any], dict[Any, Any]]:
     cb_base_names = {}
     cb_base_currencies = {}
-    with open('products.json') as f:
+    with open('data_files/products.json', "r") as f:
         data = json.load(f)
         for product in data['products']:
-            if not product['is_disabled'] and product['base_currency_id'] not in ['EURC', 'USDC', 'PAX', 'RENDER', 'RONIN', 'TVK', 'GODS', 'XRP','FOX']:
+            if not product['is_disabled'] \
+                    and product['base_currency_id'] not in ['EURC', 'USDC', 'PAX', 'RENDER', 'RONIN', 'TVK', 'GODS',
+                                                            'XRP', 'FOX'] \
+                    and product['quote_currency_id'] == 'USD':
                 cb_base_names[product['base_name'].upper()] = product['product_id']
                 cb_base_currencies[product['base_currency_id'].upper()] = product['product_id']
     # return ','.join(symbols)
@@ -214,18 +219,19 @@ def extract_coinbase_crypto_symbols() -> tuple[dict[Any, Any], dict[Any, Any]]:
 def extract_crypto_cmc_ids(cb_base_names, cb_base_currencies) -> dict[Any, tuple[Any, str]]:
     ids = {}
     missing_symbols = {}
-    with open('coinmarketcap_idmap.json') as f:
+    with (open('data_files/coinmarketcap_idmap.json', 'r') as f):
         assets = json.load(f)
         for currency in assets['data']:
             symbol = currency['symbol'].upper()
-            if currency['is_active'] == 1 and currency['symbol'] in cb_base_names.keys():
-                ids[cb_base_names[symbol]] = (currency['rank'], str(currency['id']))
-            elif currency['is_active'] == 1 and currency['symbol'] in cb_base_currencies.keys():
+            name = currency['name'].upper()
+            if currency['is_active'] == 1 \
+                    and symbol in cb_base_currencies.keys() \
+                    and name in cb_base_names.keys():
                 ids[cb_base_currencies[symbol]] = (currency['rank'], str(currency['id']))
             else:
-                print(f"Symbol {currency['symbol']} name {currency['name']} not found")
+                print(f"Symbol {symbol} name {name} not found")
                 missing_symbols[symbol] = currency['name']
-    with open('coinmarketcap_missing_symbols.json', 'w') as outfile:
+    with open('data_files/coinmarketcap_missing_symbols.json', 'w+') as outfile:
         outfile.write(json.dumps(missing_symbols, indent=2))
 
     # return ','.join(ids)
@@ -233,11 +239,11 @@ def extract_crypto_cmc_ids(cb_base_names, cb_base_currencies) -> dict[Any, tuple
 
 
 if __name__ == '__main__':
-    print_crypto_data('https://pro-api.coinmarketcap.com/v1/cryptocurrency/map', 'coinmarketcap_idmap.json')
-    # print_crypto_data('https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/map')
+    print_crypto_data('https://pro-api.coinmarketcap.com/v1/cryptocurrency/map', 'data_files/coinmarketcap_idmap.json')
+    #print_crypto_data('https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/map')
     #  fetch CMC ID for use instead of cryptocurrency symbols to securely identify cryptocurrencies
     #  with our other endpoints.
-    cb_base_names, cb_base_currencies  = extract_coinbase_crypto_symbols()
+    cb_base_names, cb_base_currencies = extract_coinbase_crypto_symbols()
     print("Total coinbase currencies in base names %d" % len(cb_base_names))
     print(cb_base_names.keys())
 
@@ -254,7 +260,8 @@ if __name__ == '__main__':
                'market_cap_by_total_supply,volume_24h_reported,volume_7d,volume_7d_reported,volume_30d,'
                'volume_30d_reported,is_active,is_fiat'
     }
-    print_crypto_prices('https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest','coinmarketcap_prices.json', parameters)
+    print_crypto_prices('https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest',
+                        'data_files/coinmarketcap_prices.json', parameters)
     db = mongodb_util.MongodbUtil()
     db.test_mongodb_setup()
-    extract_top_cryptocurrencies('coinmarketcap_prices.json', db)
+    extract_top_cryptocurrencies('data_files/coinmarketcap_prices.json', db)

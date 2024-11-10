@@ -14,7 +14,7 @@ import mongodb_util
 from crypto_price_tracker import fetch_top_cryptos_json
 
 
-def rest_client(db):
+async def rest_client(db):
     client = RESTClient(key_file="coinbase_cloud_api_key_cdp.json")
     #accounts = client.get_accounts()
     #print(dumps(accounts, indent=2))
@@ -24,7 +24,7 @@ def rest_client(db):
     db.util_drop_collection("products")
     products_deserialized = list(map(vars, products['products']))
     db.util_insert_many(products_deserialized, "products")
-    with open("products.json", "w") as outfile:
+    with open("data_files/products.json", "w+") as outfile:
         outfile.write(products_json)
 
 
@@ -152,16 +152,15 @@ def main():
     """
     db = mongodb_util.MongodbUtil()
     db.test_mongodb_setup()
-    rest_client(db)
     ws_clients = {}
     top_crypto_symbols = []
-
     loop = asyncio.new_event_loop()
     thread = threading.Thread(target=start_background_loop, args=(loop,), daemon=True)
     thread.start()
     # loop forever logic must start here
     try:
         while True:
+            asyncio.run_coroutine_threadsafe(rest_client(db), loop)
             future = asyncio.run_coroutine_threadsafe(execute_price_tracker(db), loop)
             top_crypto_symbols = future.result()
             top_crypto_symbols.append("BTC-USD")

@@ -3,9 +3,9 @@ import os
 
 async def fetch_top_cryptos_json():
     top_cryptos = []
-    if not os.path.isfile("./price_tracker.json"):
+    if not os.path.isfile("data_files/price_tracker.json"):
         return
-    with open("price_tracker.json", "r") as f:
+    with open("data_files/price_tracker.json", "r") as f:
         data = json.load(f)
         idx = 0
         for product in data:

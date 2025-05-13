@@ -8,11 +8,13 @@ import polling
 import requests
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import json
+
+import constants
 import mongodb_util
 
 headers = {
     'Accepts': 'application/json',
-    'X-CMC_PRO_API_KEY': 'd905ff43-addb-44fc-8407-af83aff01a37',
+    'X-CMC_PRO_API_KEY': constants.prod_coinmarketcap_api_key,
     'Accept-Encoding': 'deflate, gzip'
 }
 
